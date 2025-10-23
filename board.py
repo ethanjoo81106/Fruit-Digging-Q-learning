@@ -1,5 +1,6 @@
 import os
 from grid import Grid
+from score import Score
 import pygame
 
 BG = (18, 18, 22)
@@ -18,6 +19,11 @@ STEP   = 100
 
 class Board:
     def __init__(self, surface: pygame.Surface):
+
+        pygame.font.init()
+        self.font = pygame.font.SysFont("arial", 36)
+        self.text_color = (255, 255, 255)
+
         self.surface = surface
         self.bg = BG
 
@@ -31,6 +37,7 @@ class Board:
             for r in range(self.grid.height)
         ]
 
+        self.score = Score()
         self.images = {}
         self._load_image("images")
 
