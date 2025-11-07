@@ -4,6 +4,7 @@ from grid import Grid
 
 pygame.init()
 
+clock = pygame.time.Clock()
 screen = pygame.display.set_mode((720, 900))
 pygame.display.set_caption("Fruit digging")
 
@@ -11,6 +12,7 @@ board = Board(screen)
 
 running = True
 while running:
+    clock.tick(60)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False

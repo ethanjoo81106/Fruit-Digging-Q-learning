@@ -1,6 +1,7 @@
 import os
 from grid import Grid
 from score import Score
+from ability import Ability
 import pygame
 
 BG = (18, 18, 22)
@@ -58,11 +59,15 @@ class Board:
             for c in range(self.grid.width):
                 if self.tile_rects[r][c].collidepoint(pos):
                     tile = self.grid.grid[r][c]
-                    tile.dug = True
+                    if not tile.dug:
+                        tile.dug = True
+                        if tile.fruit:
+                            self.score.add(Ability.getScore(tile.fruit.base_points, tile.fruit, tile))
                     return
 
     def drawBoard(self):
         self.surface.fill(self.bg)
+        self._draw_hud()
 
         for r in range(self.grid.height):
             for c in range(self.grid.width):
@@ -77,3 +82,8 @@ class Board:
                     pygame.draw.rect(self.surface, TILE_OFF, rect)
         
         pygame.display.flip()
+
+    def _draw_hud(self):
+        pygame.draw.rect(self.surface, (28, 28, 34), pygame.Rect(0, 0, self.surface.get_width(), 80))
+        text = self.font.render(f"Score: {self.score.total}", True, self.text_color)
+        self.surface.blit(text, (15, 20))
