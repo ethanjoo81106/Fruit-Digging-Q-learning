@@ -5,6 +5,12 @@ class Ability:
     cherry = 0
 
     @staticmethod
+    def resetGameAbilities():
+        Ability.mode = 0
+        Ability.apples = 0
+        Ability.cherry = 0
+
+    @staticmethod
     def appleAdd():
         Ability.apples += 1
 
@@ -43,12 +49,10 @@ class Ability:
         elif fruit.ability == 6:
             Ability.mode = 6
 
-        print("APPLE!", Ability.apples, points)
-
+        print("BASE     MULTI     TOTAL \n",
+            points, ' ', pointMulti, ' ', points * pointMulti)
 
         return points * pointMulti
-    
-    
 
     @staticmethod
     def watermelonPop(x, y):

@@ -1,6 +1,5 @@
 import pygame
-from board import Board
-from grid import Grid
+from Display.board import Board
 
 pygame.init()
 
@@ -11,6 +10,7 @@ pygame.display.set_caption("Fruit digging")
 board = Board(screen)
 
 running = True
+
 while running:
     clock.tick(60)
     for event in pygame.event.get():
@@ -19,6 +19,6 @@ while running:
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             board.handle_click(event.pos)
 
-    board.drawBoard()
+    board.draw_board()
 
 pygame.quit()

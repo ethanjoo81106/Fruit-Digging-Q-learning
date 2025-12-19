@@ -2,7 +2,6 @@ from DataObjects.tile import Tile
 from DataObjects.fruit import Fruit
 import random
 
-
 class Grid:
     def __init__(self):
         self.width = 7
@@ -37,8 +36,7 @@ class Grid:
             "Pomegranate": 4, 
             "Coconut": 3, 
             "Cherry": 2, 
-            "Durian": 2, 
-
+            "Durian": 2,
             "Dragonfruit": 1
         }
 
@@ -84,7 +82,9 @@ class Grid:
                 continue
 
     def print_grid(self):
+
         print("\nCurrent Grid:")
+
         for r in range(self.height):
             row_display = []
             for c in range(self.width):

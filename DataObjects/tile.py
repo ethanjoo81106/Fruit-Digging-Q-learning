@@ -5,3 +5,4 @@ class Tile:
         self.dug = False
         self.fruit = None
         self.imageName = self.fruit.name + ".jpg" if self.fruit else "empty.jpg"
+        self.blownup = False

@@ -4,27 +4,27 @@ class Fruit:
         self.base_points = base_points
         self.ability = ability
 
-        if name == "mango":
+        if name == "Mango":
             self.ability = 0
             self.pointsBase = 300
-        elif name == "apple":
+        elif name == "Apple":
             self.ability = 1
             self.pointsBase = 100
-        elif name == "watermelon":
+        elif name == "Watermelon":
             self.ability = 2
             self.pointsBase = 100
-        elif name == "pomegranate":
+        elif name == "Pomegranate":
             self.ability = 3
             self.pointsBase = 200
-        elif name == "coconut":
+        elif name == "Coconut":
             self.ability = 4
             self.pointsBase = 200
-        elif name == "cherry":
+        elif name == "Cherry":
             self.ability = 5
             self.pointsBase = 200
-        elif name == "durian":
+        elif name == "Durian":
             self.ability = 6
             self.pointsBase = 800
-        elif name == "dragionfruit":
+        elif name == "Dragionfruit":
             self.ability = 0
             self.pointsBase = 1200
