@@ -1,3 +1,5 @@
+from Util.watermelon import Watermelon
+
 class Ability:
 
     mode = 0
@@ -19,9 +21,10 @@ class Ability:
         Ability.cherry += 1
 
     @staticmethod
-    def getScore(base_points, fruit, tile):
+    def getScore(base_points, fruit, tile, grid):
         points = base_points
         pointMulti = 1
+        bonus_points = 0
 
         if Ability.mode == 3:
             pointMulti = 1.5
@@ -35,7 +38,7 @@ class Ability:
             points = Ability.apples * 100
             Ability.mode = 1
         elif fruit.ability == 2:
-            Ability.watermelonPop(tile.col, tile.row)
+            bonus_points = Watermelon.explode_chain_for_half_points(grid, tile.row, tile.col)
             Ability.mode = 2
         elif fruit.ability == 3:
             Ability.mode = 3
@@ -50,10 +53,6 @@ class Ability:
             Ability.mode = 6
 
         print("BASE     MULTI     TOTAL \n",
-            points, ' ', pointMulti, ' ', points * pointMulti)
+            points, ' ', pointMulti, ' ', (points * pointMulti) + bonus_points)
 
-        return points * pointMulti
-
-    @staticmethod
-    def watermelonPop(x, y):
-        print("Watermelon ability activated!")
+        return (points * pointMulti) + bonus_points

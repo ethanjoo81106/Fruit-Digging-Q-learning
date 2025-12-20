@@ -4,7 +4,7 @@ from Game.grid import Grid
 from Game.score import Score
 from ability import Ability
 from Display.toolbar import Toolbar
-from util.bomb import Bomb
+from Util.bomb import Bomb
 import pygame
 
 BG = (18, 18, 22)
@@ -105,7 +105,7 @@ class Board:
                         self.clicks_left -= 1
                         tile.dug = True
                         if tile.fruit:
-                            self.score.add(Ability.getScore(tile.fruit.base_points, tile.fruit, tile))
+                            self.score.add(Ability.getScore(tile.fruit.base_points, tile.fruit, tile, self.grid))
                     return
 
     def draw_board(self):
