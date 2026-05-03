@@ -3,17 +3,23 @@ from DataObjects.fruit import Fruit
 import random
 
 class Grid:
+    #
+    # Creates an empty grid and defines fruit counts and score values.
+    #
     def __init__(self):
+        # Grid dimensions.
         self.width = 7
         self.height = 7
         self.grid = []
 
+        # Tile objects stored by row and column.
         for r in range(self.height):
             row = []
             for c in range(self.width):
                 row.append(Tile(r, c))
             self.grid.append(row)
 
+        # Fruit and hazard names available for random placement.
         self.kinds = [
             "Bomb", 
             "Rum", 
@@ -27,6 +33,7 @@ class Grid:
             "Dragonfruit"
         ]
 
+        # Maximum number of each kind allowed on the board.
         self.limits = {
             "Bomb": 10,
             "Rum": 5,
@@ -40,6 +47,7 @@ class Grid:
             "Dragonfruit": 1
         }
 
+        # Base score value for each fruit or hazard.
         self.base_points = {
             "Mango": 300, 
             "Apple": 0, 
@@ -53,12 +61,25 @@ class Grid:
             "Rum": 0
         }
 
+        # Tracks how many of each kind have been placed.
         self.counts = {k: 0 for k in self.kinds}
 
+    #
+    # Gets the placement limit for a kind by its 1-based index.
+    #
+    # Args:
+    #     num: 1-based position in the kinds list.
+    #
+    # Returns:
+    #     Maximum count allowed for that kind.
+    #
     def get_limit(self, num: int) -> int:
         kind = self.kinds[num - 1]
         return self.limits[kind]
 
+    #
+    # Randomly fills every tile while respecting each kind's placement limit.
+    #
     def propigate_self(self):
         self.counts = {k: 0 for k in self.kinds}
 
@@ -81,6 +102,9 @@ class Grid:
             else:
                 continue
 
+    #
+    # Prints the current grid fruit names to the console for debugging.
+    #
     def print_grid(self):
 
         print("\nCurrent Grid:")

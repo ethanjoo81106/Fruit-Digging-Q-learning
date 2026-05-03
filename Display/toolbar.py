@@ -1,7 +1,16 @@
-# toolbar.py
 import pygame
 
 class Toolbar:
+    #
+    # Creates the clue tool toolbar and lays out its buttons.
+    #
+    # Args:
+    #     surface: Pygame surface where the toolbar is drawn.
+    #     y: Top y-coordinate for the toolbar.
+    #     height: Toolbar height in pixels.
+    #     padding: Space around and between buttons.
+    #     labels: Tool labels shown as buttons.
+    #
     def __init__(
             self,
             surface: pygame.Surface,
@@ -9,13 +18,15 @@ class Toolbar:
             height: int = 90,
             padding: int = 12,
             labels=("Iron", "Gold", "Diamond"),
-            ):
+        ):
 
+        # Font and drawing surface setup.
         pygame.font.init()
 
         self.surface = surface
         self.rect = pygame.Rect(0, y, surface.get_width(), height)
 
+        # Toolbar and button colors.
         self.bg_color = (28, 28, 34)
         self.button_color = (60, 60, 72)
         self.hover_color = (80, 80, 96)
@@ -24,13 +35,21 @@ class Toolbar:
 
         self.font = pygame.font.SysFont("arial", 24)
 
+        # Tool labels and selected tool state.
         self.labels = list(labels)
         self.selected_label = self.labels[0] if self.labels else None
 
 
+        # Button rectangles keyed by label.
         self.buttons: dict[str, pygame.Rect] = {}
         self._layout_buttons(padding=padding)
 
+    #
+    # Recalculates button rectangles for the current toolbar size.
+    #
+    # Args:
+    #     padding: Space around and between buttons.
+    #
     def _layout_buttons(self, *, padding: int):
         num = len(self.labels)
 
@@ -49,6 +68,15 @@ class Toolbar:
             self.buttons[label] = pygame.Rect(x, y, button_width, button_height)
             x += button_width + padding
 
+    #
+    # Selects a toolbar button if the click position is inside one.
+    #
+    # Args:
+    #     pos: Mouse click position in screen coordinates.
+    #
+    # Returns:
+    #     Selected tool label, or None if no button was clicked.
+    #
     def handle_click(self, pos) -> str | None:
         for label, rect in self.buttons.items():
             if rect.collidepoint(pos):
@@ -56,6 +84,9 @@ class Toolbar:
                 return label
         return None
 
+    #
+    # Draws the toolbar background and each tool button.
+    #
     def draw(self):
         pygame.draw.rect(self.surface, self.bg_color, self.rect)
 
@@ -72,6 +103,13 @@ class Toolbar:
             text = self.font.render(label, True, self.text_color)
             self.surface.blit(text, text.get_rect(center=rect.center))
 
+    #
+    # Moves the toolbar vertically and rebuilds the button layout.
+    #
+    # Args:
+    #     y: New top y-coordinate for the toolbar.
+    #     padding: Space around and between buttons.
+    #
     def set_y(self, y: int, *, padding: int = 12):
         self.rect.y = y
         self._layout_buttons(padding=padding)

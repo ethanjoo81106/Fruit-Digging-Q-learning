@@ -1,4 +1,12 @@
 class Bomb:
+    #
+    # Reveals and marks all non-bomb fruit around a bomb as blown up.
+    #
+    # Args:
+    #     grid: Current game grid.
+    #     row: Row of the bomb tile.
+    #     col: Column of the bomb tile.
+    #
     @staticmethod
     def explode(grid, row: int, col: int):
         for dr in (-1, 0, 1):

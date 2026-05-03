@@ -4,7 +4,7 @@ from Display.board import Board
 pygame.init()
 
 clock = pygame.time.Clock()
-screen = pygame.display.set_mode((720, 900))
+screen = pygame.display.set_mode((720, 940))
 pygame.display.set_caption("Fruit digging")
 
 board = Board(screen)
