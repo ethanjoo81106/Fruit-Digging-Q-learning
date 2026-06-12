@@ -1,11 +1,8 @@
 import os
 
-from Game.grid import Grid
-from Game.score import Score
-from ability import Ability
+from Game.environment import FruitDiggingEnv
 from Display.clue_panel import CluePanel
 from Display.toolbar import Toolbar
-from Util.bomb import Bomb
 import pygame
 
 #Default board settings
@@ -43,9 +40,9 @@ class Board:
         self.surface = surface
         self.bg = BG
 
-        # Board data model. The grid fills itself with random fruit.
-        self.grid = Grid()
-        self.grid.propigate_self()
+        # Board data model. The environment owns gameplay state and rules.
+        self.env = FruitDiggingEnv()
+        self.grid = self.env.grid
         self.grid.print_grid()
 
         # Reset button shown in the top-right HUD.
@@ -62,7 +59,7 @@ class Board:
         ]
 
         # Score tracker, fruit images, and clue display.
-        self.score = Score()
+        self.score = self.env.score
         self.images = {}
         self._load_image("images")
         self.clue_panel = CluePanel()
@@ -73,8 +70,8 @@ class Board:
         self.toolbar.set_y(toolbar_y)
 
         # Click limit for one round.
-        self.max_clicks = 15
-        self.clicks_left = self.max_clicks
+        self.max_clicks = self.env.max_clicks
+        self.clicks_left = self.env.clicks_left
 
     #
     # Loads fruit and board-state images from the given folder.
@@ -119,22 +116,9 @@ class Board:
                 if self.tile_rects[r][c].collidepoint(pos):
                     tile = self.grid.grid[r][c]
 
-                    if self.clicks_left <= 0:
-                        return
-
-                    if tile.fruit and tile.fruit.name == "Bomb":
-                        if not tile.dug and self.clicks_left >0:
-                            self.clicks_left -= 1
-                            tile.dug = True
-                            Bomb.explode(self.grid, tile.row, tile.col)
-                            self.clue_panel.update_from_tile(self.toolbar.selected_label or "Iron", tile, self.grid)
-                            return
-
-                    if not tile.dug and self.clicks_left > 0:
-                        self.clicks_left -= 1
-                        tile.dug = True
-                        if tile.fruit:
-                            self.score.add(Ability.getScore(tile.fruit.base_points, tile.fruit, tile, self.grid))
+                    result = self.env.step((r, c))
+                    self.clicks_left = self.env.clicks_left
+                    if result.info.get("valid"):
                         self.clue_panel.update_from_tile(self.toolbar.selected_label or "Iron", tile, self.grid)
                     return
 
@@ -178,6 +162,7 @@ class Board:
         text = self.font.render(f"Score: {self.score.total}", True, self.text_color)
         self.surface.blit(text, (15, 18))
 
+        self.clicks_left = self.env.clicks_left
         click_text = self.font.render(f"Click: {self.clicks_left}", True, self.text_color)
         self.surface.blit(click_text, (250, 18))
 
@@ -192,10 +177,11 @@ class Board:
     #
     def _on_button(self, name):
         if name == "Reset":
-            self.grid = Grid()
-            self.grid.propigate_self()
+            self.env.reset()
+            self.grid = self.env.grid
+            self.score = self.env.score
             self.grid.print_grid()
-            self.clicks_left = self.max_clicks
+            self.clicks_left = self.env.clicks_left
 
             # Rebuild tile rectangles in case grid dimensions change later.
             self.tile_rects = [
@@ -203,8 +189,6 @@ class Board:
                 for c in range(self.grid.width)]
                 for r in range(self.grid.height)
             ]
-            self.score.total = 0
-            Ability.resetGameAbilities()
             self.clue_panel.reset(self.toolbar.selected_label or "Iron")
 
         toolbar_y = START_Y + (self.grid.height * STEP) + 15

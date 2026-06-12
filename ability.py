@@ -2,6 +2,9 @@ from Util.watermelon import Watermelon
 
 class Ability:
 
+    # Enables score calculation debug output when needed.
+    debug = False
+
     # Current fruit ability mode that can affect the next score calculation.
     mode = 0
 
@@ -84,6 +87,7 @@ class Ability:
         if isinstance(total, float) and total.is_integer():
             total = int(total)
 
-        print("BASE     MULTI     TOTAL \n", points, ' ', pointMulti, ' ', total)
+        if Ability.debug:
+            print("BASE     MULTI     TOTAL \n", points, ' ', pointMulti, ' ', total)
 
         return total
