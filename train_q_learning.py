@@ -11,7 +11,12 @@ EPSILON_END = 0.05
 EPSILON_DECAY = 0.995
 
 def best_action(q_table, state, valid_actions):
-    return max(valid_actions, key=lambda action: q_table[(state, action)])
+    best_value = max(q_table[(state, action)] for action in valid_actions)
+    best_actions = [
+        action for action in valid_actions
+        if q_table[(state, action)] == best_value
+    ]
+    return random.choice(best_actions)
 
 def choose_action(q_table, state, valid_actions, epsilon):
     if random.random() < epsilon:
@@ -35,6 +40,7 @@ def train():
 
             next_valid_actions = env.valid_actions()
             future_value = 0
+
             if next_valid_actions and not result.done:
                 future_value = max(q_table[(result.state, next_action)] for next_action in next_valid_actions)
 

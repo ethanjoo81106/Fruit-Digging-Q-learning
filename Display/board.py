@@ -116,10 +116,11 @@ class Board:
                 if self.tile_rects[r][c].collidepoint(pos):
                     tile = self.grid.grid[r][c]
 
-                    result = self.env.step((r, c))
+                    selected_tool = self.toolbar.selected_label or "Iron"
+                    result = self.env.step((selected_tool, (r, c)))
                     self.clicks_left = self.env.clicks_left
                     if result.info.get("valid"):
-                        self.clue_panel.update_from_tile(self.toolbar.selected_label or "Iron", tile, self.grid)
+                        self.clue_panel.update_from_tile(selected_tool, tile, self.grid)
                     return
 
     #

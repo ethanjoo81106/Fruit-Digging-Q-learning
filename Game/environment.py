@@ -2,6 +2,7 @@ from dataclasses import dataclass
 import random
 
 from ability import Ability
+from Game.clues import TOOLS, get_clue
 from Game.grid import Grid
 from Game.score import Score
 from Util.bomb import Bomb
@@ -17,8 +18,9 @@ class FruitDiggingEnv:
     #
     # Headless game environment for reinforcement learning.
     #
-    # Actions are tile coordinates encoded as an integer:
-    # action = row * width + col
+    # Actions can be tile coordinates or agent choices:
+    # tile_action = row * width + col
+    # agent_action = (tool_name, tile_action)
     #
     def __init__(
             self,
@@ -32,6 +34,9 @@ class FruitDiggingEnv:
         self.grid = None
         self.score = Score()
         self.clicks_left = max_clicks
+        self.selected_tool = TOOLS[0]
+        self.last_clue = ("None",)
+        self.highlight_tiles = ()
         self.reset(seed=seed)
 
     #
@@ -48,14 +53,18 @@ class FruitDiggingEnv:
         self.grid.propigate_self()
         self.score.reset()
         self.clicks_left = self.max_clicks
+        self.selected_tool = TOOLS[0]
+        self.last_clue = ("None",)
+        self.highlight_tiles = ()
         Ability.resetGameAbilities()
         return self.get_q_state(include_hidden=self.include_hidden_state)
 
     #
     # Applies one dig action and returns reward, next state, done flag, and info.
     #
-    def step(self, action: int | tuple[int, int]) -> StepResult:
-        row, col = self.decode_action(action)
+    def step(self, action: int | tuple[int, int] | tuple[str, int] | tuple[str, tuple[int, int]]) -> StepResult:
+        tool_name, tile_action = self.decode_agent_action(action)
+        row, col = self.decode_action(tile_action)
         tile = self.grid.grid[row][col]
         score_before = self.score.total
 
@@ -67,14 +76,19 @@ class FruitDiggingEnv:
 
         self.clicks_left -= 1
         tile.dug = True
+        self.selected_tool = tool_name
 
         if tile.fruit and tile.fruit.name == "Bomb":
             Bomb.explode(self.grid, tile.row, tile.col)
         elif tile.fruit:
             self.score.add(Ability.getScore(tile.fruit.base_points, tile.fruit, tile, self.grid))
 
+        clue = get_clue(tool_name, tile, self.grid)
+        self.last_clue = clue.code
+        self.highlight_tiles = clue.highlight_tiles
+
         reward = self.score.total - score_before
-        return self._result(reward, self.is_done(), {"valid": True, "tile": tile})
+        return self._result(reward, self.is_done(), {"valid": True, "tile": tile, "clue": clue})
 
     #
     # Returns the current state as a plain dictionary for inspection/debugging.
@@ -88,6 +102,9 @@ class FruitDiggingEnv:
             "ability_mode": Ability.mode,
             "apples": Ability.apples,
             "cherries": Ability.cherry,
+            "selected_tool": self.selected_tool,
+            "last_clue": self.last_clue,
+            "highlight_tiles": self.highlight_tiles,
             "tiles": [
                 [
                     self._tile_state(self.grid.grid[row][col], include_hidden=include_hidden)
@@ -112,13 +129,19 @@ class FruitDiggingEnv:
             Ability.mode,
             Ability.apples,
             Ability.cherry,
+            self.selected_tool,
+            self.last_clue,
+            tuple(self.highlight_tiles),
             tuple(tile_state),
         )
 
     #
-    # Returns all actions that can still be selected.
+    # Returns all tool/tile actions that can still be selected.
     #
-    def valid_actions(self) -> list[int]:
+    def valid_actions(self) -> list[tuple[str, int]]:
+        return self.valid_agent_actions()
+
+    def valid_tile_actions(self) -> list[int]:
         if self.clicks_left <= 0:
             return []
 
@@ -130,11 +153,18 @@ class FruitDiggingEnv:
                     actions.append(self.encode_action(row, col))
         return actions
 
+    def valid_agent_actions(self) -> list[tuple[str, int]]:
+        return [
+            (tool_name, tile_action)
+            for tool_name in TOOLS
+            for tile_action in self.valid_tile_actions()
+        ]
+
     def is_done(self) -> bool:
         return self.clicks_left <= 0 or len(self.valid_actions()) == 0
 
     def action_space_size(self) -> int:
-        return self.grid.width * self.grid.height
+        return len(TOOLS) * self.grid.width * self.grid.height
 
     def encode_action(self, row: int, col: int) -> int:
         if row < 0 or col < 0 or row >= self.grid.height or col >= self.grid.width:
@@ -151,6 +181,22 @@ class FruitDiggingEnv:
         if row < 0 or col < 0 or row >= self.grid.height or col >= self.grid.width:
             raise ValueError(f"Action out of bounds: {action}")
         return row, col
+
+    def decode_agent_action(
+            self,
+            action: int | tuple[int, int] | tuple[str, int] | tuple[str, tuple[int, int]],
+        ) -> tuple[str, int | tuple[int, int]]:
+        if (
+                isinstance(action, tuple)
+                and len(action) == 2
+                and isinstance(action[0], str)
+            ):
+            tool_name, tile_action = action
+            if tool_name not in TOOLS:
+                raise ValueError(f"Unknown tool: {tool_name}")
+            return tool_name, tile_action
+
+        return self.selected_tool, action
 
     def _result(self, reward, done: bool, info: dict) -> StepResult:
         return StepResult(

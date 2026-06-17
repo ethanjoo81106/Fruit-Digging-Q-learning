@@ -37,7 +37,7 @@ def benchmark(episodes: int, seed: int | None = None) -> list[int | float]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Benchmark a baseline agent that randomly chooses valid tiles."
+        description="Benchmark a baseline agent that randomly chooses valid tool/tile actions."
     )
     parser.add_argument("--episodes", type=int, default=1000)
     parser.add_argument("--seed", type=int, default=None)

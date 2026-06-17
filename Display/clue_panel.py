@@ -1,6 +1,6 @@
 import pygame
 
-from ability import Ability
+from Game.clues import get_clue
 
 class CluePanel:
     #
@@ -56,55 +56,9 @@ class CluePanel:
         self.title = tool_name
         self.highlight_tiles.clear()
 
-        neighbors = self._get_neighbors(tile.row, tile.col, grid)
-
-        # Iron reports the number of adjacent bombs.
-        if tool_name == "Iron":
-            mine_count = sum(
-                1 for neighbor in neighbors
-                if neighbor.fruit and neighbor.fruit.name == "Bomb"
-            )
-            mine_label = "mine" if mine_count == 1 else "mines"
-            self.text = f"{mine_count} adjacent {mine_label}."
-            return
-
-        # Diamond highlights the nearby fruit with the lowest current score value.
-        if tool_name == "Diamond":
-            fruit_neighbors = [
-                neighbor for neighbor in neighbors
-                if neighbor.fruit
-                and neighbor.fruit.name not in ("Bomb", "Rum")
-                and not neighbor.dug
-                and not neighbor.blownup
-            ]
-
-            if not fruit_neighbors:
-                self.text = "No nearby fruit found."
-                return
-
-            target = min(
-                fruit_neighbors,
-                key=lambda neighbor: (self._get_current_fruit_score(neighbor.fruit), neighbor.row, neighbor.col)
-            )
-            self.highlight_tiles.add((target.row, target.col))
-            self.text = f"Lowest nearby fruit: {target.fruit.name} at {target.row + 1},{target.col + 1}."
-            return
-
-        # Gold and other fruit clue tools report the nearby fruit with the highest score value.
-        fruit_neighbors = [
-            neighbor for neighbor in neighbors
-            if neighbor.fruit and neighbor.fruit.name not in ("Bomb", "Rum")
-        ]
-
-        if not fruit_neighbors:
-            self.text = "No nearby fruit found."
-            return
-
-        target = max(
-            fruit_neighbors,
-            key=lambda neighbor: (self._get_current_fruit_score(neighbor.fruit), neighbor.row, neighbor.col)
-        )
-        self.text = f"Highest nearby fruit: {target.fruit.name}"
+        clue = get_clue(tool_name, tile, grid)
+        self.text = clue.text
+        self.highlight_tiles.update(clue.highlight_tiles)
 
     #
     # Draws the clue panel inside the HUD.
@@ -160,59 +114,6 @@ class CluePanel:
             trimmed = trimmed[:-1]
 
         return trimmed + "..." if trimmed else ""
-
-    #
-    # Gets all valid tiles surrounding a grid position.
-    #
-    # Args:
-    #     row: Center tile row.
-    #     col: Center tile column.
-    #     grid: Current game grid.
-    #
-    # Returns:
-    #     List of neighboring tiles around the center position.
-    #
-    def _get_neighbors(self, row: int, col: int, grid):
-        neighbors = []
-        for dr in (-1, 0, 1):
-            for dc in (-1, 0, 1):
-                if dr == 0 and dc == 0:
-                    continue
-
-                nr = row + dr
-                nc = col + dc
-                if 0 <= nr < grid.height and 0 <= nc < grid.width:
-                    neighbors.append(grid.grid[nr][nc])
-
-        return neighbors
-
-    #
-    # Calculates the current score value a fruit would give if dug now.
-    #
-    # Args:
-    #     fruit: Fruit object to evaluate.
-    #
-    # Returns:
-    #     Current score value after active fruit scaling and multipliers.
-    #
-    def _get_current_fruit_score(self, fruit):
-        point_multiplier = 1
-        if Ability.mode == 3:
-            point_multiplier = 1.5
-        elif Ability.mode == 6:
-            point_multiplier = 0.5
-
-        if fruit.ability == 1:
-            points = (Ability.apples + 1) * 100
-        elif fruit.ability == 5 and Ability.cherry + 1 == 2:
-            points = fruit.base_points + 200
-        else:
-            points = fruit.base_points
-
-        score = points * point_multiplier
-        if isinstance(score, float) and score.is_integer():
-            return int(score)
-        return score
 
     #
     # Gets the default clue message for the selected tool.
